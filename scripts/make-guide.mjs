@@ -84,6 +84,46 @@ function numberedStep(n, title, text, color = C.accent) {
   doc.font("body").fontSize(11).fillColor(C.ink2).text(text, L + 50, doc.y + 3, { width: CW - 60, lineGap: 3 });
   doc.y = Math.max(doc.y, y + h) + 8;
 }
+// Dark terminal-style box for commands.
+function code(lines, x = L, width = CW) {
+  const h = 16 + lines.length * 15;
+  ensure(h + 8);
+  const y = doc.y;
+  doc.roundedRect(x, y, width, h, 9).fill("#15171c");
+  lines.forEach((l, i) => {
+    const comment = l.startsWith("#");
+    doc.font("Courier").fontSize(10).fillColor(comment ? "#8a919c" : "#f1f3f5").text(comment ? l : `> ${l}`, x + 12, y + 9 + i * 15, { width: width - 24, lineBreak: false });
+  });
+  doc.y = y + h + 8; doc.x = L;
+}
+// Numbered step with optional command box underneath.
+function setupStep(n, title, text, cmds) {
+  doc.font("body").fontSize(11);
+  const textH = doc.heightOfString(text, { width: CW - 60, lineGap: 3 });
+  ensure(26 + textH + (cmds ? 24 + cmds.length * 15 : 0));
+  const y = doc.y;
+  doc.circle(L + 13, y + 12, 13).fill(C.accent);
+  doc.font("display").fontSize(12).fillColor("#fff").text(String(n), L, y + 5, { width: 26, align: "center" });
+  doc.font("display").fontSize(13.5).fillColor(C.ink).text(title, L + 40, y + 2, { width: CW - 40 });
+  doc.font("body").fontSize(11).fillColor(C.ink2).text(text, L + 40, doc.y + 2, { width: CW - 40, lineGap: 3 });
+  doc.y += 6;
+  if (cmds) code(cmds, L + 40, CW - 40);
+  doc.y += 6; doc.x = L;
+}
+function rowTable(rows, keyW = 170, mono = true) {
+  for (const [k, v] of rows) {
+    doc.font("body").fontSize(10.5);
+    const h = Math.max(16, doc.heightOfString(v, { width: CW - keyW - 10, lineGap: 2 }));
+    ensure(h + 10);
+    const y = doc.y;
+    doc.font(mono ? "Courier-Bold" : "display").fontSize(mono ? 9.5 : 11).fillColor(C.ink).text(k, L, y + (mono ? 1.5 : 0), { width: keyW - 8 });
+    doc.font("body").fontSize(10.5).fillColor(C.ink2).text(v, L + keyW, y, { width: CW - keyW, lineGap: 2 });
+    doc.y = Math.max(doc.y, y + h) + 6;
+    doc.moveTo(L, doc.y - 2).lineTo(L + CW, doc.y - 2).lineWidth(0.5).strokeColor(C.line).stroke();
+    doc.y += 4;
+  }
+  doc.moveDown(0.4);
+}
 
 // ---------------- Cover ----------------
 doc.rect(0, 0, W, H).fill("#13151a");
@@ -238,6 +278,60 @@ const start = [
   ["Share and relax", "Download a PDF report. The Watcher re-checks every month and alerts you to changes."],
 ];
 start.forEach(([t, d], i) => numberedStep(i + 1, t, d, C.ink));
+
+// ---------------- 5. Run it yourself ----------------
+doc.addPage();
+h1("Run it on your computer", "For developers · from GitHub to running");
+p("About 5 minutes. Steps 1–3 are needed only the first time. Type each command into a terminal (PowerShell on Windows, Terminal on Mac) and press Enter.");
+card({ title: "Before you start", color: C.blue, soft: C.blueSoft, list: [
+  "Node.js version 20 or newer – download the LTS version from nodejs.org.",
+  "Git – from git-scm.com.",
+  "Ports 3000 (website) and 4000 (API) free on your computer.",
+] });
+
+setupStep(1, "Check your tools", "Both commands should print a version number. Node must be v20 or higher. If you see \"not recognised\", install the tool and open a new terminal.", ["node -v", "git --version"]);
+setupStep(2, "Download the code", "This copies the project from GitHub into a new folder called dpdp, then moves you into it.", ["git clone https://github.com/ykmanish/dpdp.git", "cd dpdp"]);
+setupStep(3, "Install everything", "Installs the website and, automatically, the API server inside the server folder. Takes 1–3 minutes the first time.", ["npm install"]);
+setupStep(4, "Start the app", "Starts two programs together in one window: the API (lines marked \"api\", port 4000) and the website (lines marked \"web\", port 3000). On the very first start it creates a demo workspace with sample websites. Leave this window open while you use the app.", ["npm run dev"]);
+setupStep(5, "Open it in your browser", "When you see \"Ready\" in the terminal, go to this address:", ["http://localhost:3000"]);
+setupStep(6, "Sign in", "Click one of the demo buttons – Owner, Admin, Auditor or Viewer – to try each role. Or click \"Create a workspace\" to start fresh as an owner. (Demo account details are listed in server/src/seed.js.)");
+setupStep(7, "Take the tour", "Click \"Take the tour\" on the welcome screen. Later you can re-open it from Help (top right) → Start platform tour.");
+setupStep(8, "Scan a real website", "Go to Websites → Add websites, paste a link such as example.com, and watch the five helpers work live. The demo sites work even without internet.");
+setupStep(9, "Stop and start again", "Press Ctrl + C in the terminal to stop. Next time, just open a terminal in the dpdp folder and run npm run dev again – your data is kept in server/data/db.json.", ["# stop: press Ctrl + C", "cd dpdp", "npm run dev"]);
+
+h2("Handy commands");
+rowTable([
+  ["npm run dev", "Start the API and website together for development."],
+  ["npm run seed", "Wipe all data and re-create the demo workspace. Run while the app is stopped."],
+  ["npm run docs:guide", "Re-build this PDF (docs/Privacy-Auditor-Guide.pdf)."],
+  ["npm run lint", "Check the code for common mistakes."],
+  ["npm run build\nnpm start", "Build and run the website in production mode (port 3000)."],
+  ["npm --prefix server start", "Run the API in production mode (port 4000). Run it alongside npm start."],
+]);
+
+h2("Optional settings");
+p("The app works without any setup. For a real deployment, set these environment variables before starting:", { gap: 0.4 });
+rowTable([
+  ["JWT_SECRET", "A long random text used to sign logins. Always change it for production."],
+  ["PORT", "Port for the API (default 4000)."],
+  ["WEB_ORIGIN", "Website address allowed to call the API (default http://localhost:3000)."],
+  ["API_ORIGIN", "Where the website finds the API (default http://localhost:4000)."],
+]);
+p("Example in PowerShell:", { gap: 0.3 });
+code(["$env:JWT_SECRET=\"my-long-random-secret\"; npm run dev"]);
+p("On Mac / Linux:", { gap: 0.3 });
+code(["JWT_SECRET=\"my-long-random-secret\" npm run dev"]);
+
+ensure(340);
+h2("If something goes wrong");
+rowTable([
+  ["\"npm\" is not recognised", "Node.js is not installed, or the terminal was open before installing. Install Node.js and open a new terminal."],
+  ["Port already in use", "An old copy is still running. Close that terminal (or press Ctrl + C in it) and run npm run dev again."],
+  ["Stuck on \"Loading your workspace…\"", "The API is not running. Look for red error lines marked \"api\" in the terminal and restart with npm run dev."],
+  ["Login says incorrect password", "Use the demo buttons, or reset demo data with npm run seed and try again."],
+  ["A website scan failed", "The site may be down or may block automated visitors. Check the link opens in your browser; the demo sites always work."],
+  ["Want a clean start", "Stop the app, run npm run seed, then npm run dev."],
+], 190, false);
 
 // Footers (skip cover)
 const range = doc.bufferedPageRange();
