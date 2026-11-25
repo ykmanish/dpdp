@@ -3,19 +3,30 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently -k -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:web": "next dev",
+    "dev:api": "npm --prefix server run dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "npm --prefix server run seed",
+    "postinstall": "npm --prefix server install",
+    "docs:guide": "node scripts/make-guide.mjs"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
+    "driver.js": "^1.14.0",
+    "lucide-react": "^1.80.0",
+    "motion": "^14.14.0",
     "next": "16.4.6",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "sonner": "^2.0.8"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",
     "babel-plugin-react-compiler": "1.0.0",
+    "concurrently": "^10.0.7",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "tailwindcss": "4.3.3"

@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Privacy Auditor — DPDP
 
-## Getting Started
+Website Privacy Auditor (idea #2 from *Next Project Ideas*). Feed it website URLs; an agent pipeline reads each site's **trackers**, **cookie banner** and **privacy notice**, checks them against India's **Digital Personal Data Protection Act, 2023**, quotes the evidence, double-checks it, scores it Red / Amber / Green, lets people decide, and re-scans every month.
 
-First, run the development server:
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install          # also installs /server deps
+npm run dev          # API on :4000 + Next.js on :3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. On first start the API seeds a demo workspace (**Acme Digital**) with six fictional websites and four users — one per role. The demo accounts and their shared password are in [`server/src/seed.js`](server/src/seed.js), and the login page has one-click buttons for each role (dev only).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+`npm run seed` wipes `server/data/db.json` and re-seeds.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Stack
 
-## Learn More
+| Layer | What |
+|---|---|
+| Frontend | Next.js 16 (App Router, Turbopack), Tailwind v4, `motion` animations, `lucide-react` icons, `driver.js` tours, `sonner` toasts |
+| Fonts | `satre.ttf` (display) and `regular.otf` (body) via `next/font/local` |
+| Backend | Express 5 (`/server`), JWT in an httpOnly cookie, bcrypt, cheerio for HTML parsing, pdfkit for reports |
+| Storage | JSON file (`server/data/db.json`) behind small helpers in `server/src/db.js` — swap for Postgres/Mongo there |
 
-To learn more about Next.js, take a look at the following resources:
+Next.js proxies `/api/*` to Express (see `next.config.mjs`) so the session cookie is first-party. `src/proxy.js` does an optimistic redirect to `/login`; the API is the real authority.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Auth** — register (creates a workspace, you're owner), login with rate limiting, logout, profile & password change.
+- **Workspaces & RBAC** — per-workspace roles: Owner, Admin, Auditor, Viewer. Permissions live in `server/src/rbac.js` and are enforced on every API route; the UI hides what you can't do. The Team page shows the full matrix.
+- **Agent pipeline** (`server/src/scanner/pipeline.js`)
+  1. **Discovery** – fetches the homepage, first-response cookies and the privacy notice.
+  2. **Investigator** – 24 tracker signatures, 10 consent managers, banner/reject wording, personal-data forms, 15 DPDP notice clauses — each with a quoted sentence as proof.
+  3. **Challenger** – re-reads the source, overturns negated clauses, downgrades weak matches and JS-rendered pages.
+  4. **Risk score** – `100 − Σ(deduction × confidence)`; Green ≥ 75, Amber 50–74, Red < 50.
+  5. **Watcher** – diffs against the previous scan → alerts (score drop, RAG change, new tracker, banner removed, policy changed). Re-scans run on the workspace schedule (default monthly).
+- **Decisions** — Remediate / Accept risk (justification required) / Dismiss; carried forward to future scans.
+- **Reports** — per-site PDF, portfolio PDF, findings CSV.
+- **Activity log** — sign-ins, scans, decisions, role changes and exports.
+- **Guidance** — welcome modal on first login, a platform tour and a tour for every page (driver.js), a Help menu (tour this page, guide, DPDP primer, shortcuts), a Guide page with a self-ticking getting-started checklist, and a ⌘/Ctrl-K command palette.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Signals only — not legal advice.

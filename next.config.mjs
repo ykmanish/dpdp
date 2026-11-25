@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const API_ORIGIN = process.env.API_ORIGIN || "http://localhost:4000";
+
 const nextConfig = {
   /* config options here */
   experimental: {
@@ -14,6 +16,10 @@ const nextConfig = {
         as: "*.css",
       },
     },
+  },
+  // Proxy the Express API through the Next origin so the auth cookie is first-party.
+  async rewrites() {
+    return [{ source: "/api/:path*", destination: `${API_ORIGIN}/api/:path*` }];
   },
 };
 

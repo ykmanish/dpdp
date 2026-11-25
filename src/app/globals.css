@@ -1,26 +1,127 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #eef1ec;
+  --window: #f6f6f4;
+  --panel: #ffffff;
+  --ink: #17181a;
+  --ink-2: #4b4f56;
+  --ink-3: #8a8f98;
+  --line: #e9e9e6;
+  --line-2: #f1f1ef;
+  --soft: #f5f5f3;
+  --accent: #f26b1d;
+  --accent-soft: #fff1e6;
+  --red: #e5484d;
+  --red-soft: #feeceb;
+  --amber: #e5940c;
+  --amber-soft: #fff4dc;
+  --green: #2f9e5b;
+  --green-soft: #e6f6ea;
+  --blue: #3b6ef5;
+  --blue-soft: #eaf0ff;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-window: var(--window);
+  --color-panel: var(--panel);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-soft: var(--soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-red: var(--red);
+  --color-red-soft: var(--red-soft);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-blue: var(--blue);
+  --color-blue-soft: var(--blue-soft);
+  --font-sans: var(--font-regular), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-satre), var(--font-regular), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Soft landscape-like backdrop behind the floating window */
+.scenery {
+  background:
+    radial-gradient(1200px 500px at 15% -10%, #cfe3ff 0%, transparent 60%),
+    radial-gradient(900px 500px at 95% 0%, #ffe3cf 0%, transparent 55%),
+    radial-gradient(1000px 600px at 50% 120%, #cfeccf 0%, transparent 60%),
+    linear-gradient(180deg, #e6efff 0%, #eef3ea 55%, #e3efdc 100%);
+}
+
+.font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+
+.scrollbar-thin { scrollbar-width: thin; scrollbar-color: #d9d9d6 transparent; }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+.dot-grid {
+  background-image: radial-gradient(#e6e6e3 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+.skeleton { position: relative; overflow: hidden; background: #f0f0ee; border-radius: 10px; }
+.skeleton::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(242,107,29,.45); } 100% { box-shadow: 0 0 0 10px rgba(242,107,29,0); } }
+.pulse-ring { animation: pulse-ring 1.4s ease-out infinite; }
+
+/* ---------- driver.js theme ---------- */
+.driver-popover.pa-tour {
+  font-family: var(--font-sans);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 16px;
+  padding: 18px 18px 14px;
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 60px -20px rgba(16, 24, 40, .35), 0 2px 6px rgba(16,24,40,.06);
+  max-width: 340px;
+}
+.driver-popover.pa-tour .driver-popover-title {
+  font-family: var(--font-display);
+  font-size: 17px; font-weight: 600; line-height: 1.25; margin-bottom: 6px;
+}
+.driver-popover.pa-tour .driver-popover-description { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+.driver-popover.pa-tour .driver-popover-progress-text { font-size: 12px; color: var(--ink-3); }
+.driver-popover.pa-tour .driver-popover-footer button {
+  font-family: var(--font-sans); text-shadow: none; border-radius: 10px; padding: 6px 12px; font-size: 12.5px;
+  border: 1px solid var(--line); background: #fff; color: var(--ink);
+  transition: all .15s ease;
+}
+.driver-popover.pa-tour .driver-popover-footer button:hover { background: var(--soft); }
+.driver-popover.pa-tour .driver-popover-footer .driver-popover-next-btn { background: var(--ink); color: #fff; border-color: var(--ink); }
+.driver-popover.pa-tour .driver-popover-footer .driver-popover-next-btn:hover { background: #000; }
+.driver-popover.pa-tour .driver-popover-close-btn { color: var(--ink-3); }
+.driver-popover.pa-tour .driver-popover-arrow { border-color: #fff; }
+.driver-popover.pa-tour .driver-popover-arrow-side-left.driver-popover-arrow { border-right-color: transparent; border-top-color: transparent; border-bottom-color: transparent; }
+.driver-popover.pa-tour .driver-popover-arrow-side-right.driver-popover-arrow { border-left-color: transparent; border-top-color: transparent; border-bottom-color: transparent; }
+.driver-popover.pa-tour .driver-popover-arrow-side-top.driver-popover-arrow { border-right-color: transparent; border-left-color: transparent; border-bottom-color: transparent; }
+.driver-popover.pa-tour .driver-popover-arrow-side-bottom.driver-popover-arrow { border-left-color: transparent; border-top-color: transparent; border-right-color: transparent; }
+.pa-tour-chip {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: .02em;
+  color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; margin-bottom: 8px;
+}
+
+.pa-toast { font-family: var(--font-sans) !important; border-radius: 14px !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
